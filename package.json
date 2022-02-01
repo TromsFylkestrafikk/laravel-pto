@@ -1,0 +1,15 @@
+{
+    "name": "laravel-pto",
+    "version": "0.0.1",
+    "description": "Public Transport Operators",
+    "main": "index.js",
+    "author": "Kåre Slettnes <kaare.slettnes@tffk.no>",
+    "license": "GPL-3.0-or-later",
+    "scripts": {
+        "prepare": "husky install"
+    },
+    "dependencies": {
+        "husky": "^7.0.4",
+        "lint-staged": "^12.3.2"
+    }
+}
