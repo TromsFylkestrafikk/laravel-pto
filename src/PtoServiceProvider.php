@@ -11,6 +11,11 @@ class PtoServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        $this->setupMigrations();
+    }
 
+    protected function setupMigrations()
+    {
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
     }
 }
