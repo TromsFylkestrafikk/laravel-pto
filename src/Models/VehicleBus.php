@@ -58,7 +58,6 @@ class VehicleBus extends Model
         'capacity_stands_avail',
     ];
 
-
     public function vehicle()
     {
         return $this->belongsTo(Vehicle::class, 'id');
