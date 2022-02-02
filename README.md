@@ -5,7 +5,7 @@ their vehicles.
 
 ## Copying
 
-Copyright (c) 2021-2022 Kåre Slettnes <kaare.slettnes@tffk.no>
+Copyright (c) 2022 Kåre Slettnes <kaare.slettnes@tffk.no>
 
 ### License
 

@@ -2,7 +2,15 @@
 
 namespace TromsFylkestrafikk\Pto;
 
-class PtoServiceProvider
+use Illuminate\Support\ServiceProvider;
+
+class PtoServiceProvider extends ServiceProvider
 {
-    //
+    /**
+     * @inheritdoc
+     */
+    public function boot()
+    {
+
+    }
 }
