@@ -164,24 +164,35 @@ class VehicleImportCsv extends Command
             return;
         }
         $vehicle->apc_enabled = $record['apc_enabled'] ?? false;
+        $this->updateFromSchema($record, $vehicle_specific, self::$fields[$model_name]);
+        $vehicle->save();
+    }
 
-        foreach (self::$fields[$model_name] as $field_name => $options) {
+    /**
+     * Update model attributes from record using a schema.
+     *
+     * @param array $record
+     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param array $schema
+     */
+    protected function updateFromSchema($record, $model, $schema)
+    {
+        foreach ($schema as $field_name => $options) {
             if (isset($record[$field_name]) && strlen($record[$field_name]) !== 0) {
-                $vehicle_specific->{$field_name} = $record[$field_name];
+                $model->{$field_name} = $record[$field_name];
             } else {
                 if ($options['required']) {
                     $this->addMessage(sprintf(
                         "%d: Missing required field '%s' for vehicle.",
-                        $vehicle->id,
+                        $model->id,
                         $field_name
                     ), 'error');
                     return;
                 }
-                $vehicle_specific->{$field_name} = $options['default'];
+                $model->{$field_name} = $options['default'];
             }
+            $model->save();
         }
-        $vehicle->save();
-        $vehicle_specific->save();
     }
 
     /**
