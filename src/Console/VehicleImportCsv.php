@@ -132,7 +132,7 @@ class VehicleImportCsv extends Command
             $this->processCsvRecord($record, $index);
             $this->progressBar->advance();
         }
-        $this->finish();
+        $this->summary();
         return static::SUCCESS;
     }
 
@@ -213,7 +213,25 @@ class VehicleImportCsv extends Command
         }
     }
 
-    protected function finish()
+    /**
+     * Custom formatted progress bar,
+     *
+     * @param \League\Csv\Reader $iterable
+     */
+    protected function initProgressBar($iterable)
+    {
+        ProgressBar::setFormatDefinition('custom', "[ %status:-5s% ]  |%bar%| %percent:3s%% (%current%/%max%)\n%message%\n");
+        $this->progressBar = $this->output->createProgressBar($iterable->count());
+        $this->progressBar->setFormat('custom');
+        $this->progressBar->setMessage("Importing vehicles …");
+        $this->progressBar->setMessage("OK", 'status');
+        $this->progressBar->start();
+    }
+
+    /**
+     * Post parse summary and cleanup.
+     */
+    protected function summary()
     {
         $this->progressBar->setMessage($this->messages ? "Complete with noise. Se log below." : "Success.");
         $this->progressBar->finish();
@@ -224,15 +242,5 @@ class VehicleImportCsv extends Command
             }
             $this->progressBar->setMessage($msg['message']);
         }
-    }
-
-    protected function initProgressBar($iterable)
-    {
-        ProgressBar::setFormatDefinition('custom', "[ %status:-5s% ]  |%bar%| %percent:3s%% (%current%/%max%)\n%message%\n");
-        $this->progressBar = $this->output->createProgressBar($iterable->count());
-        $this->progressBar->setFormat('custom');
-        $this->progressBar->setMessage("Importing vehicles …");
-        $this->progressBar->setMessage("OK", 'status');
-        $this->progressBar->start();
     }
 }
