@@ -5,6 +5,7 @@ namespace TromsFylkestrafikk\Pto;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use TromsFylkestrafikk\Pto\Console\VehicleImportCsv;
+use TromsFylkestrafikk\Pto\Console\CompanyImportCsv;
 
 class PtoServiceProvider extends ServiceProvider
 {
@@ -48,6 +49,9 @@ class PtoServiceProvider extends ServiceProvider
 
     protected function registerConsoleCommands()
     {
-        $this->commands([VehicleImportCsv::class]);
+        $this->commands([
+            CompanyImportCsv::class,
+            VehicleImportCsv::class,
+        ]);
     }
 }

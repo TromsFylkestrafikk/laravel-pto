@@ -31,7 +31,7 @@ class VehicleImportCsv extends Command
     /**
      * List of messages collected during import.
      *
-     * @var string[]
+     * @var mixed[]
      */
     protected $messages = [];
 
@@ -117,8 +117,6 @@ class VehicleImportCsv extends Command
      * Parse CSV file.
      *
      * @param string $csvFilename
-     * @param int $companyId
-     * @param string $type
      *
      * @return int
      */
@@ -138,6 +136,7 @@ class VehicleImportCsv extends Command
 
     /**
      * @param array $record
+     * @param int $index Current record index.
      */
     protected function processCsvRecord($record, $index)
     {
@@ -145,6 +144,7 @@ class VehicleImportCsv extends Command
             $this->addMessage("Missing ID for record #{$index}", 'error');
             return;
         }
+        /** @var \TromsFylkestrafikk\Pto\Models\Vehicle|null $vehicle */
         $vehicle = Vehicle::find($record['id']);
         $record_type = $record['type'] ?? $this->type;
         $model_name = $record_type === 'bus' ? 'bus' : 'watercraft';
@@ -172,7 +172,7 @@ class VehicleImportCsv extends Command
      * Update model attributes from record using a schema.
      *
      * @param array $record
-     * @param \Illuminate\Database\Eloquent\Model $model
+     * @param \TromsFylkestrafikk\Pto\Models\Vehicle $model
      * @param array $schema
      */
     protected function updateFromSchema($record, $model, $schema)

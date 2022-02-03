@@ -15,7 +15,7 @@ class PtoTables extends Migration
     {
         Schema::create('pto_company', function (Blueprint $table)
         {
-            $table->integer('id');
+            $table->unsignedInteger('id')->primary();
             $table->string('name', 60);
         });
 
