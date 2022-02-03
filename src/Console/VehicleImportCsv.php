@@ -57,11 +57,11 @@ class VehicleImportCsv extends Command
     protected $companyId;
 
     /**
-     * List of available fields we support per vehicle type.
+     * List of supported/saved fields per vehicle type.
      *
      * @var mixed[]
      */
-    public static $fields = [
+    public static $schema = [
         'bus' => [
             'class'                 => [ 'required' => true ],
             'brand'                 => [ 'required' => false, 'default' => '' ],
@@ -157,14 +157,14 @@ class VehicleImportCsv extends Command
         } else {
             $vehicle_specific = $vehicle->{$model_name};
         }
-        $vehicle->internal_id = $record['internal_id'] ?? null;
         $vehicle->company_id = $record['company_id'] ?? $this->companyId;
         if (!$vehicle->company_id) {
             $this->addMessage(sprintf("%s: Missing company ID.", $vehicle->id), 'error');
             return;
         }
+        $vehicle->internal_id = $record['internal_id'] ?? null;
         $vehicle->apc_enabled = $record['apc_enabled'] ?? false;
-        $this->updateFromSchema($record, $vehicle_specific, self::$fields[$model_name]);
+        $this->updateFromSchema($record, $vehicle_specific, self::$schema[$model_name]);
         $vehicle->save();
     }
 
@@ -191,8 +191,8 @@ class VehicleImportCsv extends Command
                 }
                 $model->{$field_name} = $options['default'];
             }
-            $model->save();
         }
+        $model->save();
     }
 
     /**
