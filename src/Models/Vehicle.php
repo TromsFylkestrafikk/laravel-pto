@@ -31,15 +31,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Vehicle extends Model
 {
-    protected $table = 'pto_vehicle';
     public $incrementing = false;
-    public $fillable = [
-        'id',
-        'internal_id',
-        'type',
-        'company_id',
-        'apc_enabled',
-    ];
+    public $guarded = ['id'];
+    protected $table = 'pto_vehicle';
 
     public function company()
     {

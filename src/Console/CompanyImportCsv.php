@@ -9,11 +9,6 @@ use TromsFylkestrafikk\Pto\Models\Company;
 class CompanyImportCsv extends Command
 {
     /**
-     * @var \TromsFylkestrafikk\Pto\Services\CsvToModels
-     */
-    protected $mapper;
-
-    /**
      * The name and signature of the console command.
      *
      * @var string
@@ -45,7 +40,8 @@ class CompanyImportCsv extends Command
      */
     public function handle()
     {
-        $this->mapper = new CsvToModels($this->argument('file'), Company::class);
-        $this->mapper->execute();
+        $mapper = new CsvToModels($this->argument('file'), Company::class);
+        $mapper->execute();
+        $this->info(sprintf("Successfully imported %d companies", $mapper->getSynced()));
     }
 }
