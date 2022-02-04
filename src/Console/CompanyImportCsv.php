@@ -29,14 +29,6 @@ class CompanyImportCsv extends Command
     protected $description = 'Import companies from csv file';
 
     /**
-     * Schema used to map csv to models.
-     */
-    protected static $schema = [
-        'id' => [ 'required' => true ],
-        'name' => [ 'required' => true ],
-    ];
-
-    /**
      * Create a new command instance.
      *
      * @return void
@@ -53,7 +45,7 @@ class CompanyImportCsv extends Command
      */
     public function handle()
     {
-        $this->mapper = new CsvToModels($this->argument('file'), self::$schema, Company::class);
+        $this->mapper = new CsvToModels($this->argument('file'), Company::class);
         $this->mapper->execute();
     }
 }

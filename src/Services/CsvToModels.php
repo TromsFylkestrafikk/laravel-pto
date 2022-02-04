@@ -17,11 +17,6 @@ class CsvToModels
     protected $csv;
 
     /**
-     * @var mixed[]
-     */
-    protected $schema;
-
-    /**
      * @var string
      */
     protected $modelClass;
@@ -40,14 +35,12 @@ class CsvToModels
 
     /**
      * @param string $csvFileName Filename of CSV to import.
-     * @param array $schema
      * @param string $modelClass Model that should be updated or created.
      */
-    public function __construct(string $csvFileName, array $schema, $modelClass)
+    public function __construct(string $csvFileName, $modelClass)
     {
         $this->csv = Reader::createFromPath($csvFileName, 'r');
         $this->csv->setHeaderOffset(0);
-        $this->schema = $schema;
         $this->modelClass = $modelClass;
         if (!is_subclass_of($modelClass, Model::class)) {
             throw new Exception("Class is not subclass of Model: " . $modelClass);
