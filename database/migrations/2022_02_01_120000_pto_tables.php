@@ -17,20 +17,20 @@ class PtoTables extends Migration
         {
             $table->unsignedInteger('id')->primary();
             $table->string('name', 60);
+            $table->timestamps();
         });
 
         Schema::create('pto_vehicle', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->comment("The vehicle ID as received from SIRI VM dumps");
+            $table->unsignedBigInteger('id')->primary()->comment("The vehicle ID as received from SIRI VM dumps");
             $table->string('internal_id', 8)->nullable()->comment("Company internal id of vehicle.");
             $table->string('type', 16)->comment("Vehicle type (bus, hsc, ferry)");
             $table->unsignedMediumInteger('company_id');
             $table->boolean('apc_enabled')->default(false)->comment("Do we have APC onboard? Is it calibrated enough for everyday use?");
             $table->timestamps();
-            $table->primary('id');
         });
 
         Schema::create('pto_vehicle_bus', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->comment("The vehicle ID as received from SIRI VM dumps");
+            $table->unsignedBigInteger('id')->primary()->comment("The vehicle ID as received from SIRI VM dumps");
             $table->string('registration_id', 32)->nullable();
             $table->char('registration_year', 4)->nullable();
             $table->string('brand', 100)->nullable();
@@ -43,11 +43,10 @@ class PtoTables extends Migration
             $table->unsignedMediumInteger('capacity_stands')->nullable();
             $table->unsignedMediumInteger('capacity_stands_avail')->nullable();
             $table->timestamps();
-            $table->primary('id');
         });
 
         Schema::create('pto_vehicle_watercraft', function (Blueprint $table) {
-            $table->unsignedBigInteger('id')->comment("The vehicle ID as received from SIRI VM dumps");
+            $table->unsignedBigInteger('id')->primary()->comment("The vehicle ID as received from SIRI VM dumps");
             $table->unsignedInteger('imo')->nullable()->comment("International Maritime Organization number");
             $table->string('type', 16);
             $table->char('prefix', 8);
@@ -61,7 +60,6 @@ class PtoTables extends Migration
             $table->unsignedMediumInteger('capacity_cars_avail')->nullable();
             $table->string('url', 256)->nullable()->comment("Useful for watercraft geeks in need of more information");
             $table->timestamps();
-            $table->primary('id');
         });
     }
 

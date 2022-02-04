@@ -52,7 +52,9 @@ class CsvToModels
         if (!is_subclass_of($modelClass, Model::class)) {
             throw new Exception("Class is not subclass of Model: " . $modelClass);
         }
-        $this->primaryKey = (new $modelClass())->getKeyName();
+        /** @var \Illuminate\Database\Eloquent\Model $modelProber */
+        $modelProber = new $modelClass();
+        $this->primaryKey = $modelProber->getKeyName();
         $header = $this->csv->getHeader();
         $this->hasPrimaryKey = in_array($this->primaryKey, $header);
     }
@@ -89,18 +91,7 @@ class CsvToModels
     public function syncModel($record, $model = null)
     {
         $model = $this->getModel($record, $model);
-        foreach ($this->schema as $fieldName => $options) {
-            if (isset($record[$fieldName]) && strlen($record[$fieldName]) !== 0) {
-                $model->{$fieldName} = $record[$fieldName];
-            } else {
-                if ($options['required']) {
-                    throw new Exception("Field '$fieldName' is required for model, but is missing in csv.");
-                }
-                if (isset($options['default'])) {
-                    $model->{$fieldName} = $options['default'];
-                }
-            }
-        }
+        $model->fill($record);
         return $model;
     }
 
@@ -112,7 +103,7 @@ class CsvToModels
      *
      * @return null|\Illuminate\Database\Eloquent\Model
      */
-    protected function getModel($record, $model = null)
+    public function getModel($record, $model = null)
     {
         if ($model) {
             return $model;
