@@ -29,7 +29,7 @@ class CsvToModels
     /**
      * @var string Primary key name of model.
      */
-    protected $primaryKey;
+    protected $keyName;
 
     /**
      * True if CSV has a header matching the primary key in model.
@@ -54,9 +54,9 @@ class CsvToModels
         }
         /** @var \Illuminate\Database\Eloquent\Model $modelProber */
         $modelProber = new $modelClass();
-        $this->primaryKey = $modelProber->getKeyName();
+        $this->keyName = $modelProber->getKeyName();
         $header = $this->csv->getHeader();
-        $this->hasPrimaryKey = in_array($this->primaryKey, $header);
+        $this->hasPrimaryKey = in_array($this->keyName, $header);
     }
 
     /**
@@ -111,6 +111,15 @@ class CsvToModels
         if (!$this->hasPrimaryKey) {
             return new $this->modelClass();
         }
-        return ($this->modelClass)::firstOrNew([$this->primaryKey => $record[$this->primaryKey]]);
+        $primaryKey = $record[$this->keyName];
+        if (!$primaryKey) {
+            throw new Exception("Primary key is missing in record");
+        }
+        $model = ($this->modelClass)::find($primaryKey);
+        if (!$model) {
+            $model = new $this->modelClass();
+            $model->{$this->keyName} = $primaryKey;
+        }
+        return $model;
     }
 }

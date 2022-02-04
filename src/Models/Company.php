@@ -20,5 +20,5 @@ class Company extends Model
 {
     public $incrementing = false;
     protected $table = 'pto_company';
-    protected $guarded = [];
+    protected $guarded = ['id'];
 }
