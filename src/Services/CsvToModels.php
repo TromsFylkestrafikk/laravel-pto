@@ -45,6 +45,20 @@ class CsvToModels
     protected $synced;
 
     /**
+     * If present, only update records if this yields true.
+     *
+     * @var callable
+     */
+    protected $whenHandler;
+
+    /**
+     * Keyed array with default values for record;
+     *
+     * @var array
+     */
+    protected $defaults;
+
+    /**
      * @param string $csvFileName Filename of CSV to import.
      * @param string $modelClass Model that should be updated or created.
      */
@@ -62,6 +76,20 @@ class CsvToModels
         $header = $this->csv->getHeader();
         $this->hasPrimaryKey = in_array($this->keyName, $header);
         $this->synced = 0;
+        $this->defaults = [];
+        $this->whenHandler = null;
+    }
+
+    public function filter(callable $whenHandler)
+    {
+        $this->whenHandler = $whenHandler;
+        return $this;
+    }
+
+    public function withDefaults(array $defaults)
+    {
+        $this->defaults = $defaults;
+        return $this;
     }
 
     /**
@@ -74,6 +102,9 @@ class CsvToModels
     public function execute($recordCallback = null)
     {
         foreach ($this->csv as $record) {
+            if ($this->whenHandler && !call_user_func($this->whenHandler, $record)) {
+                continue;
+            }
             $model = $this->syncModel($record);
             $model->save();
             if ($recordCallback) {
@@ -81,6 +112,7 @@ class CsvToModels
             }
             $this->synced++;
         }
+        return $this;
     }
 
     /**
@@ -94,7 +126,7 @@ class CsvToModels
     public function syncModel($record, $model = null)
     {
         $model = $this->getModel($record, $model);
-        $model->fill($record);
+        $model->fill(array_merge($this->defaults, $record));
         return $model;
     }
 
