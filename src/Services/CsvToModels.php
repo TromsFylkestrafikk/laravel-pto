@@ -23,12 +23,16 @@ class CsvToModels
     protected $csv;
 
     /**
+     * Class used to find or instantiate models
+     *
      * @var string
      */
     protected $modelClass;
 
     /**
-     * @var string Primary key name of model.
+     * Primary key name of model.
+     *
+     * @var string
      */
     protected $keyName;
 
@@ -42,7 +46,7 @@ class CsvToModels
     /**
      * @var int
      */
-    protected $synced;
+    protected $syncedCnt;
 
     /**
      * If present, only update records if this yields true.
@@ -75,7 +79,7 @@ class CsvToModels
         $this->keyName = $modelProber->getKeyName();
         $header = $this->csv->getHeader();
         $this->hasPrimaryKey = in_array($this->keyName, $header);
-        $this->synced = 0;
+        $this->syncedCnt = 0;
         $this->defaults = [];
         $this->filterHandler = null;
     }
@@ -122,7 +126,7 @@ class CsvToModels
             if ($recordCallback) {
                 call_user_func($recordCallback, $model, $record);
             }
-            $this->synced++;
+            $this->syncedCnt++;
         }
         return $this;
     }
@@ -182,10 +186,12 @@ class CsvToModels
     }
 
     /**
+     * Get the number of successful syncronisations.
+     *
      * @return int
      */
     public function getSynced()
     {
-        return $this->synced;
+        return $this->syncedCnt;
     }
 }
