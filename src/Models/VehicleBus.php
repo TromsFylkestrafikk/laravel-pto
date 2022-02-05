@@ -43,20 +43,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class VehicleBus extends Model
 {
-    protected $table = 'pto_vehicle_bus';
     public $incrementing = false;
-    public $fillable = [
-        'id',
-        'registration_id',
-        'registration_year',
-        'brand',
-        'model',
-        'class',
-        'capacity_seats',
-        'capacity_stands',
-        'capacity_seats_avail',
-        'capacity_stands_avail',
-    ];
+    public $guarded = ['id'];
+    protected $table = 'pto_vehicle_bus';
 
     public function vehicle()
     {

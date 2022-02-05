@@ -5,8 +5,8 @@ namespace TromsFylkestrafikk\Pto\Console;
 use TromsFylkestrafikk\Pto\Models\Vehicle;
 use TromsFylkestrafikk\Pto\Models\VehicleBus;
 use TromsFylkestrafikk\Pto\Models\VehicleWatercraft;
+use TromsFylkestrafikk\Pto\Services\CsvToModels;
 use Illuminate\Console\Command;
-use League\Csv\Reader;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 class VehicleImportCsv extends Command
@@ -29,9 +29,18 @@ class VehicleImportCsv extends Command
     protected $description = 'Import vehicle data from CSV file';
 
     /**
+     * Map of allowed vehicle types and their specific model.
+     */
+    protected static $typeClassMap = [
+        'bus' => VehicleBus::class,
+        'hsc' => VehicleWatercraft::class,
+        'ferry' => VehicleWatercraft::class,
+    ];
+
+    /**
      * List of messages collected during import.
      *
-     * @var string[]
+     * @var mixed[]
      */
     protected $messages = [];
 
@@ -43,53 +52,16 @@ class VehicleImportCsv extends Command
     protected $progressBar = null;
 
     /**
-     * Default type for csv import.
-     *
      * @var string
      */
-    protected $type;
+    protected $defaultType = 'bus';
 
     /**
-     * Default company ID for csv import.
+     * Number of records found in CSV.
      *
      * @var int
      */
-    protected $companyId;
-
-    /**
-     * List of supported/saved fields per vehicle type.
-     *
-     * @var mixed[]
-     */
-    public static $schema = [
-        'bus' => [
-            'class'                 => [ 'required' => true ],
-            'brand'                 => [ 'required' => false, 'default' => '' ],
-            'model'                 => [ 'required' => false, 'default' => '' ],
-            'registration_id'       => [ 'required' => false, 'default' => '' ],
-            'registration_year'     => [ 'required' => false, 'default' => '' ],
-            'capacity_pax'          => [ 'required' => true ],
-            'capacity_pax_avail'    => [ 'required' => true ],
-            'capacity_seats'        => [ 'required' => false, 'default' => null ],
-            'capacity_seats_avail'  => [ 'required' => false, 'default' => null ],
-            'capacity_stands'       => [ 'required' => false, 'default' => null ],
-            'capacity_stands_avail' => [ 'required' => false, 'default' => null ],
-        ],
-        'watercraft' => [
-            'imo'                 => [ 'required' => false, 'default' => null ],
-            'type'                => [ 'required' => true ],
-            'prefix'              => [ 'required' => false, 'default' => '' ],
-            'name'                => [ 'required' => true ],
-            'callsign'            => [ 'required' => false, 'default' => '' ],
-            'phone'               => [ 'required' => false, 'default' => '' ],
-            'line'                => [ 'required' => true ],
-            'capacity_pax'        => [ 'required' => true ],
-            'capacity_pax_avail'  => [ 'required' => true ],
-            'capacity_cars'       => [ 'required' => false, 'default' => null ],
-            'capacity_cars_avail' => [ 'required' => false, 'default' => null ],
-            'url'                 => [ 'required' => false, 'default' => null ],
-        ],
-    ];
+    protected $recordCount = 0;
 
     /**
      * Create a new command instance.
@@ -108,8 +80,7 @@ class VehicleImportCsv extends Command
      */
     public function handle()
     {
-        $this->companyId = $this->option('company') ?? 0;
-        $this->type = $this->option('type') ?? 'bus';
+        $this->defaultType = $this->option('type') ?: 'bus';
         return $this->parseCsv($this->argument('file'));
     }
 
@@ -117,89 +88,76 @@ class VehicleImportCsv extends Command
      * Parse CSV file.
      *
      * @param string $csvFilename
-     * @param int $companyId
-     * @param string $type
      *
      * @return int
      */
     public function parseCsv($csvFilename)
     {
-        /** @var Reader $csv */
-        $csv = Reader::createFromPath($csvFilename, 'r');
-        $csv->setHeaderOffset(0);
-        $this->initProgressBar($csv);
-        foreach ($csv as $index => $record) {
-            $this->processCsvRecord($record, $index);
-            $this->progressBar->advance();
+        $classesFound = [];
+        $vehicleMapper = new CsvToModels($csvFilename, Vehicle::class);
+        $this->recordCount = $vehicleMapper->getReader()->count();
+        $this->info("Step one: Generic vehicle model import:");
+        $this->initProgressBar($this->recordCount, "Importing {$this->recordCount} vehicles");
+        $vehicleMapper
+            ->filter(function ($record) {
+                $this->progressBar->advance();
+                return !isset($record['type']) || !empty(self::$typeClassMap[$record['type']]);
+            })
+            ->withDefaults($this->getVehicleDefaults())
+            ->execute(function ($model) use (&$classesFound) {
+                $classesFound[self::$typeClassMap[$model->type]] = true;
+            });
+        $this->summary();
+
+        // Do it all over again for all for the detected specific vehicle types
+        $this->info("Step two: Specific vehicle model import:");
+        $this->initProgressBar($this->recordCount, "Processing vehicle specific content");
+        foreach (array_keys($classesFound) as $typeClass) {
+            $typeMapper = new CsvToModels($csvFilename, $typeClass);
+            $typeMapper
+                ->filter(function ($record) use ($typeClass) {
+                    $recordType = $record['type'] ?? $this->defaultType;
+                    return $typeClass === self::$typeClassMap[$recordType];
+                })
+                ->withDefaults($this->getVehicleTypeDefaults())
+                ->execute(function () {
+                    $this->progressBar->advance();
+                });
         }
         $this->summary();
         return static::SUCCESS;
     }
 
     /**
-     * @param array $record
+     * Default record values for Vehicles.
+     *
+     * @return string[]
      */
-    protected function processCsvRecord($record, $index)
+    protected function getVehicleDefaults()
     {
-        if (empty($record['id'])) {
-            $this->addMessage("Missing ID for record #{$index}", 'error');
-            return;
-        }
-        $vehicle = Vehicle::find($record['id']);
-        $record_type = $record['type'] ?? $this->type;
-        $model_name = $record_type === 'bus' ? 'bus' : 'watercraft';
-        if (!$vehicle) {
-            $vehicle = new Vehicle();
-            $vehicle->id = $record['id'];
-            $vehicle->type = $record_type;
-            $vehicle_specific = $record_type === 'bus' ? new VehicleBus() : new VehicleWatercraft();
-            $vehicle_specific->id = $record['id'];
-        } else {
-            $vehicle_specific = $vehicle->{$model_name};
-        }
-        $vehicle->company_id = $record['company_id'] ?? $this->companyId;
-        if (!$vehicle->company_id) {
-            $this->addMessage(sprintf("%s: Missing company ID.", $vehicle->id), 'error');
-            return;
-        }
-        $vehicle->internal_id = $record['internal_id'] ?? null;
-        $vehicle->apc_enabled = $record['apc_enabled'] ?? false;
-        $this->updateFromSchema($record, $vehicle_specific, self::$schema[$model_name]);
-        $vehicle->save();
+        return [
+            'type' => $this->defaultType,
+            'company_id' => $this->option('company') ?: 0,
+        ];
     }
 
     /**
-     * Update model attributes from record using a schema.
+     * Default record values for vehicle specific models.
      *
-     * @param array $record
-     * @param \Illuminate\Database\Eloquent\Model $model
-     * @param array $schema
+     * @return string[]
      */
-    protected function updateFromSchema($record, $model, $schema)
+    protected function getVehicleTypeDefaults()
     {
-        foreach ($schema as $field_name => $options) {
-            if (isset($record[$field_name]) && strlen($record[$field_name]) !== 0) {
-                $model->{$field_name} = $record[$field_name];
-            } else {
-                if ($options['required']) {
-                    $this->addMessage(sprintf(
-                        "%d: Missing required field '%s' for vehicle.",
-                        $model->id,
-                        $field_name
-                    ), 'error');
-                    return;
-                }
-                $model->{$field_name} = $options['default'];
-            }
-        }
-        $model->save();
+        return ['type' => $this->defaultType];
     }
 
     /**
-     * Add a new message to be displayed to the user.
+     * Add a message on the progress bar.
      *
-     * @param string $msg  The message to display
-     * @param string $severity  Error level of message: ’info’, ’warn’ or ’error’.
+     * These will pool up and be summarized at the end of processing.
+     *
+     * @param string $msg The message to display
+     * @param string $severity Error level of message: ’info’, ’warn’ or ’error’.
      */
     protected function addMessage($msg, $severity = 'info')
     {
@@ -216,14 +174,14 @@ class VehicleImportCsv extends Command
     /**
      * Custom formatted progress bar,
      *
-     * @param \League\Csv\Reader $iterable
+     * @param int $count
      */
-    protected function initProgressBar($iterable)
+    protected function initProgressBar($count, $message = "Importing …")
     {
         ProgressBar::setFormatDefinition('custom', "[ %status:-5s% ]  |%bar%| %percent:3s%% (%current%/%max%)\n%message%\n");
-        $this->progressBar = $this->output->createProgressBar($iterable->count());
+        $this->progressBar = $this->output->createProgressBar($count);
         $this->progressBar->setFormat('custom');
-        $this->progressBar->setMessage("Importing vehicles …");
+        $this->progressBar->setMessage($message);
         $this->progressBar->setMessage("OK", 'status');
         $this->progressBar->start();
     }

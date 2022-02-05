@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Company extends Model
 {
+    public $incrementing = false;
     protected $table = 'pto_company';
-    public $timestamps = false;
-    protected $fillable = ['id', 'name'];
+    protected $guarded = ['id'];
 }

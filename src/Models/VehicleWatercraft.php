@@ -47,21 +47,7 @@ class VehicleWatercraft extends Model
 {
     protected $table = 'pto_vehicle_watercraft';
     public $incrementing = false;
-    public $fillable = [
-        'id',
-        'imo',
-        'type',
-        'prefix',
-        'name',
-        'callsign',
-        'phone',
-        'line',
-        'capacity_pax',
-        'capacity_cars',
-        'capacity_pax_avail',
-        'capacity_cars_avail',
-        'url',
-    ];
+    public $guarded = ['id'];
 
     public function vehicle()
     {
