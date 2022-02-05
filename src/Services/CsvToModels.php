@@ -47,9 +47,9 @@ class CsvToModels
     /**
      * If present, only update records if this yields true.
      *
-     * @var callable
+     * @var null|callable
      */
-    protected $whenHandler;
+    protected $filterHandler;
 
     /**
      * Keyed array with default values for record;
@@ -77,15 +77,27 @@ class CsvToModels
         $this->hasPrimaryKey = in_array($this->keyName, $header);
         $this->synced = 0;
         $this->defaults = [];
-        $this->whenHandler = null;
+        $this->filterHandler = null;
     }
 
-    public function filter(callable $whenHandler)
+    /**
+     * @param callable $filterHandler
+     *   Called for each record in CSV with current record as parameter. Return
+     *   true to sync it to models.
+     *
+     * @return $this
+     */
+    public function filter(callable $filterHandler)
     {
-        $this->whenHandler = $whenHandler;
+        $this->filterHandler = $filterHandler;
         return $this;
     }
 
+    /**
+     * @param mixed[] $defaults
+     *
+     * @return $this
+     */
     public function withDefaults(array $defaults)
     {
         $this->defaults = $defaults;
@@ -96,19 +108,19 @@ class CsvToModels
      * Start creating/syncing models from csv.
      *
      * @param null|callable $recordCallback
-     *   Called on every successfully processed records with the updated model
-     *   and record as arguments.
+     *   If set, called on every successfully processed records with the updated
+     *   model and record as arguments.
      */
     public function execute($recordCallback = null)
     {
         foreach ($this->csv as $record) {
-            if ($this->whenHandler && !call_user_func($this->whenHandler, $record)) {
+            if ($this->filterHandler && !call_user_func($this->filterHandler, $record)) {
                 continue;
             }
             $model = $this->syncModel($record);
             $model->save();
             if ($recordCallback) {
-                $recordCallback($model, $record);
+                call_user_func($recordCallback, $model, $record);
             }
             $this->synced++;
         }
@@ -125,6 +137,7 @@ class CsvToModels
      */
     public function syncModel($record, $model = null)
     {
+        $record = array_filter($record, 'strlen');
         $model = $this->getModel($record, $model);
         $model->fill(array_merge($this->defaults, $record));
         return $model;

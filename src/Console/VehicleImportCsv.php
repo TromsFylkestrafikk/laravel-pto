@@ -7,7 +7,6 @@ use TromsFylkestrafikk\Pto\Models\VehicleBus;
 use TromsFylkestrafikk\Pto\Models\VehicleWatercraft;
 use TromsFylkestrafikk\Pto\Services\CsvToModels;
 use Illuminate\Console\Command;
-use League\Csv\Reader;
 use Symfony\Component\Console\Helper\ProgressBar;
 
 class VehicleImportCsv extends Command
@@ -58,6 +57,13 @@ class VehicleImportCsv extends Command
     protected $defaultType = 'bus';
 
     /**
+     * Number of records found in CSV.
+     *
+     * @var int
+     */
+    protected $recordCount = 0;
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -89,17 +95,24 @@ class VehicleImportCsv extends Command
     {
         $classesFound = [];
         $vehicleMapper = new CsvToModels($csvFilename, Vehicle::class);
+        $this->recordCount = $vehicleMapper->getReader()->count();
+        $this->info("Step one: Generic vehicle model import:");
+        $this->initProgressBar($this->recordCount, "Importing {$this->recordCount} vehicles");
         $vehicleMapper
             ->filter(function ($record) {
+                $this->progressBar->advance();
                 return !isset($record['type']) || !empty(self::$typeClassMap[$record['type']]);
             })
             ->withDefaults($this->getVehicleDefaults())
             ->execute(function ($model) use (&$classesFound) {
                 $classesFound[self::$typeClassMap[$model->type]] = true;
             });
+        $this->summary();
 
+        // Do it all over again for all for the detected specific vehicle types
+        $this->info("Step two: Specific vehicle model import:");
+        $this->initProgressBar($this->recordCount, "Processing vehicle specific content");
         foreach (array_keys($classesFound) as $typeClass) {
-            $this->info("Processing $typeClass");
             $typeMapper = new CsvToModels($csvFilename, $typeClass);
             $typeMapper
                 ->filter(function ($record) use ($typeClass) {
@@ -107,16 +120,44 @@ class VehicleImportCsv extends Command
                     return $typeClass === self::$typeClassMap[$recordType];
                 })
                 ->withDefaults($this->getVehicleTypeDefaults())
-                ->execute();
+                ->execute(function () {
+                    $this->progressBar->advance();
+                });
         }
+        $this->summary();
         return static::SUCCESS;
     }
 
     /**
-     * Add a new message to be displayed to the user.
+     * Default record values for Vehicles.
      *
-     * @param string $msg  The message to display
-     * @param string $severity  Error level of message: ’info’, ’warn’ or ’error’.
+     * @return string[]
+     */
+    protected function getVehicleDefaults()
+    {
+        return [
+            'type' => $this->defaultType,
+            'company_id' => $this->option('company') ?: 0,
+        ];
+    }
+
+    /**
+     * Default record values for vehicle specific models.
+     *
+     * @return string[]
+     */
+    protected function getVehicleTypeDefaults()
+    {
+        return ['type' => $this->defaultType];
+    }
+
+    /**
+     * Add a message on the progress bar.
+     *
+     * These will pool up and be summarized at the end of processing.
+     *
+     * @param string $msg The message to display
+     * @param string $severity Error level of message: ’info’, ’warn’ or ’error’.
      */
     protected function addMessage($msg, $severity = 'info')
     {
@@ -130,30 +171,17 @@ class VehicleImportCsv extends Command
         }
     }
 
-    protected function getVehicleDefaults()
-    {
-        return [
-            'type' => $this->defaultType,
-            'company_id' => $this->option('company') ?: 0,
-        ];
-    }
-
-    protected function getVehicleTypeDefaults()
-    {
-        return ['type' => $this->defaultType];
-    }
-
     /**
      * Custom formatted progress bar,
      *
-     * @param \League\Csv\Reader $iterable
+     * @param int $count
      */
-    protected function initProgressBar($iterable)
+    protected function initProgressBar($count, $message = "Importing …")
     {
         ProgressBar::setFormatDefinition('custom', "[ %status:-5s% ]  |%bar%| %percent:3s%% (%current%/%max%)\n%message%\n");
-        $this->progressBar = $this->output->createProgressBar($iterable->count());
+        $this->progressBar = $this->output->createProgressBar($count);
         $this->progressBar->setFormat('custom');
-        $this->progressBar->setMessage("Importing vehicles …");
+        $this->progressBar->setMessage($message);
         $this->progressBar->setMessage("OK", 'status');
         $this->progressBar->start();
     }
