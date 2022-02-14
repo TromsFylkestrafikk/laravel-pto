@@ -34,6 +34,7 @@ class Vehicle extends Model
     public $incrementing = false;
     public $guarded = ['id'];
     protected $table = 'pto_vehicle';
+    protected $casts = ['apc_enabled' => 'boolean'];
 
     public function company()
     {
