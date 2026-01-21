@@ -1,11 +1,11 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Models;
+namespace TfkSamf\Pto\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * \TromsFylkestrafikk\Pto\Models\Company
+ * \TfkSamf\Pto\Models\Company
  *
  * @property int $id
  * @property string $name

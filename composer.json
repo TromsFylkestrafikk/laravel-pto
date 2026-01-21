@@ -1,5 +1,5 @@
 {
-    "name": "tromsfylkestrafikk/laravel-pto",
+    "name": "tfk-samf/laravel-pto",
     "description": "Public Transport Operators",
     "type": "library",
     "license": "GPL-3.0-or-later",
@@ -35,13 +35,13 @@
     },
     "autoload": {
         "psr-4": {
-            "TromsFylkestrafikk\\Pto\\": "src/"
+            "TfkSamf\\Pto\\": "src/"
         }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "TromsFylkestrafikk\\Pto\\PtoServiceProvider"
+                "TfkSamf\\Pto\\PtoServiceProvider"
             ]
         }
     }
