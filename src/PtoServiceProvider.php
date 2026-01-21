@@ -1,11 +1,11 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto;
+namespace TfkSamf\Pto;
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
-use TromsFylkestrafikk\Pto\Console\VehicleImportCsv;
-use TromsFylkestrafikk\Pto\Console\CompanyImportCsv;
+use TfkSamf\Pto\Console\VehicleImportCsv;
+use TfkSamf\Pto\Console\CompanyImportCsv;
 
 class PtoServiceProvider extends ServiceProvider
 {

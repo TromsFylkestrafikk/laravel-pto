@@ -1,6 +1,6 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Services;
+namespace TfkSamf\Pto\Services;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;

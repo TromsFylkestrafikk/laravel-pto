@@ -1,10 +1,10 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Console;
+namespace TfkSamf\Pto\Console;
 
 use Illuminate\Console\Command;
-use TromsFylkestrafikk\Pto\Services\CsvToModels;
-use TromsFylkestrafikk\Pto\Models\Company;
+use TfkSamf\Pto\Services\CsvToModels;
+use TfkSamf\Pto\Models\Company;
 
 class CompanyImportCsv extends Command
 {

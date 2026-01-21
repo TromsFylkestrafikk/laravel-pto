@@ -1,11 +1,11 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Models;
+namespace TfkSamf\Pto\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * \TromsFylkestrafikk\Pto\Models\Vehicle
+ * \TfkSamf\Pto\Models\Vehicle
  *
  * @property int $id The vehicle ID as received from SIRI VM dumps
  * @property string|null $internal_id Company internal id of vehicle.
@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $apc_enabled Do we have APC onboard? Is it calibrated enough for everyday use?
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \TromsFylkestrafikk\Pto\Models\VehicleBus|null $bus
- * @property-read \TromsFylkestrafikk\Pto\Models\Company $company
- * @property-read \TromsFylkestrafikk\Pto\Models\VehicleWatercraft|null $watercraft
+ * @property-read \TfkSamf\Pto\Models\VehicleBus|null $bus
+ * @property-read \TfkSamf\Pto\Models\Company $company
+ * @property-read \TfkSamf\Pto\Models\VehicleWatercraft|null $watercraft
  * @method static \Illuminate\Database\Eloquent\Builder|Vehicle newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Vehicle newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|Vehicle query()

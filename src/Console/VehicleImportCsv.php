@@ -1,11 +1,11 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Console;
+namespace TfkSamf\Pto\Console;
 
-use TromsFylkestrafikk\Pto\Models\Vehicle;
-use TromsFylkestrafikk\Pto\Models\VehicleBus;
-use TromsFylkestrafikk\Pto\Models\VehicleWatercraft;
-use TromsFylkestrafikk\Pto\Services\CsvToModels;
+use TfkSamf\Pto\Models\Vehicle;
+use TfkSamf\Pto\Models\VehicleBus;
+use TfkSamf\Pto\Models\VehicleWatercraft;
+use TfkSamf\Pto\Services\CsvToModels;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Helper\ProgressBar;
 

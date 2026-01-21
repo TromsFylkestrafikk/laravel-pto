@@ -1,11 +1,11 @@
 <?php
 
-namespace TromsFylkestrafikk\Pto\Models;
+namespace TfkSamf\Pto\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * \TromsFylkestrafikk\Pto\Models\VehicleBus
+ * \TfkSamf\Pto\Models\VehicleBus
  *
  * @property int $id The vehicle ID as received from SIRI VM dumps
  * @property string|null $registration_id
@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int|null $capacity_stands_avail
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
- * @property-read \TromsFylkestrafikk\Pto\Models\Vehicle $vehicle
+ * @property-read \TfkSamf\Pto\Models\Vehicle $vehicle
  * @method static \Illuminate\Database\Eloquent\Builder|VehicleBus newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|VehicleBus newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|VehicleBus query()
